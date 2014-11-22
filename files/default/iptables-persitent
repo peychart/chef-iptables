@@ -51,7 +51,6 @@ getrules() {
 start() {
   flush
 
-# FIREWALLS:
   if [ -d $DEFINITIONS ]; then
 
     for table in $($(which ls) $DEFINITIONS); do
@@ -110,7 +109,7 @@ start() {
   fi
 }
 
-# Traitement des arguments start|stop|restart
+# Arguments processing:
 if command -v iptables >/dev/null 2>&1; then
   case "$1" in
   ""|start|restart|reload)
@@ -130,14 +129,13 @@ if command -v iptables >/dev/null 2>&1; then
       for i in $r; do 
         echo $i| grep -qs "=" && eval $i
       done
-      [ -z "$IN" -o "_$IN" = "_lo" ] && continue
 
       [ $DEBUG -ne 0 ] && echo IN=$IN OUT=$OUT MAC=$MAC SRC=$SRC DST=$DST PROTO=$PROTO SPT=$SPT DPT=$DPT
       echo "$(which iptables) -A INPUT -p $PROTO -d $DST --dport $DPT -j ACCEPT"
     done| sort -u
     ;;
   *)
-    echo "Usage: $0 {start|stop|restart|suggest}"
+    echo "Usage: $0 {start|stop|restart|reload|suggest}"
     false ;;
   esac
 

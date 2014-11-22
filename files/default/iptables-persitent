@@ -1,0 +1,148 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:             firewall
+# Required-Start:
+# Required-Stop:
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    Lance le firewall iptables
+### END INIT INFO
+
+PREFIX="(Iptables-dropped): "
+DEFINITIONS=/etc/iptables.d
+export DEBUG=${DEBUG:=0}
+
+flush() {
+  for ipv in "" 6; do
+    [ -f /proc/net/ip${ipv}_tables_names ] \
+     && for IPTABLES in $(which ip${ipv}tables); do
+      for param in F Z X; do
+        $IPTABLES -$param
+      done
+      for table in $(cat /proc/net/ip${ipv}_tables_names); do
+        for param in F Z X; do
+          $IPTABLES --table $table -$param
+        done
+      done
+      for chain in INPUT FORWARD OUTPUT; do
+        $IPTABLES -F $chain
+        $IPTABLES -P $chain ACCEPT
+      done
+    done
+  done
+  echo 0 >/proc/sys/net/ipv4/ip_forward
+}
+
+_iptables() {
+  local iptbl=$(which ip$([ 0$1 -eq 6 ] && echo 6)tables); shift
+  [ $DEBUG -gt 1 ] && echo $iptbl $* && return 0
+  $iptbl $*; [ $? -ne 0 -a $DEBUG -ne 0 ] && echo "(Error on: iptables $*)" >&2 && false
+}
+_ip4tables() { _iptables 4 $*; }
+_ip6tables() { _iptables 6 $*; }
+
+getrules() {
+  cat $1| while read rule; do
+    rule=$(echo $rule| sed -e 's/#.*$//' -e 's/[ 	]*$//')
+    [ -z "$rule" ] || echo $rule
+  done
+}
+
+start() {
+  flush
+
+# FIREWALLS:
+  if [ -d $DEFINITIONS ]; then
+
+    for table in $($(which ls) $DEFINITIONS); do
+      if [ -d $DEFINITIONS/$table ]; then
+
+        for chain in $($(which ls) $DEFINITIONS/$table); do
+          [ -d $DEFINITIONS/$table/$chain ] && for def in $($(which ls) $DEFINITIONS/$table/$chain); do
+            [ $DEBUG -gt 1 ] && echo "# $DEFINITIONS/$table/$chain:" >&2
+  
+            getrules $DEFINITIONS/$table/$chain/$def| while read rule; do
+              if echo $DEFINITIONS/$table/$chain/$def| grep -qs "\.ipv6$"; then
+                _ip6tables --table $table -A $chain $rule
+              else
+                _ip4tables --table $table -A $chain $rule
+              fi
+            done
+  
+          done
+        done
+
+      else
+        [ $DEBUG -gt 1 ] && echo "# $DEFINITIONS/$table:" >&2
+
+        getrules $DEFINITIONS/$table| while read rule; do
+          if echo $DEFINITIONS/$table| grep -qs "\.ipv6$"; then
+            _ip6tables $rule
+          else
+            _ip4tables $rule
+          fi
+        done
+
+      fi
+    done
+
+  fi
+
+# LOG_DROP : log & drop
+  _ip4tables -N LOG_DROP
+  _ip4tables -A LOG_DROP -p 2 -j DROP
+  _ip4tables -A LOG_DROP -p udp --dport 67:68 -j DROP
+  _ip4tables -A LOG_DROP -p tcp --tcp-flags ACK,RST ACK,RST -j DROP
+  _ip4tables -A LOG_DROP -m limit --limit 6/minute -j LOG --log-level notice --log-prefix "$PREFIX"
+  _ip4tables -A LOG_DROP -j DROP
+  _ip4tables -A INPUT -i lo -j ACCEPT
+  _ip4tables -A OUTPUT -o lo -j ACCEPT
+  _ip4tables -A INPUT -d 10.7.2.8 -j PING
+  _ip4tables -A OUTPUT -s 10.7.2.8 -j PING
+  _ip4tables -A INPUT --jump LOG_DROP
+  _ip4tables -A OUTPUT --jump LOG_DROP
+  _ip4tables -A FORWARD --jump LOG_DROP
+
+  [ $DEBUG -ne 0 ] && _ip4tables -A INPUT --protocol tcp --dport 22 --sport 1024:65535 --match state --state NEW --jump ACCEPT
+
+  if _ip4tables -L -nv| grep -v DROP| grep -qs FORWARD; then
+    echo 1 >/proc/sys/net/ipv4/ip_forward
+  fi
+}
+
+# Traitement des arguments start|stop|restart
+if command -v iptables >/dev/null 2>&1; then
+  case "$1" in
+  ""|start|restart|reload)
+    start
+    ;;
+  stop|flush)
+    flush
+    ;;
+  status)
+    I=4; for IPTABLES in $(which iptables) $(which ip6tables); do
+      echo "IPV$I:" && _ip4tables -L -nv; echo
+      I=$(expr $I + 2)
+    done
+    ;;
+  suggest)
+    grep "$PREFIX" /var/log/syslog| sed -e 's/^.*'"$PREFIX//"| while read r; do
+      for i in $r; do 
+        echo $i| grep -qs "=" && eval $i
+      done
+      [ -z "$IN" -o "_$IN" = "_lo" ] && continue
+
+      [ $DEBUG -ne 0 ] && echo IN=$IN OUT=$OUT MAC=$MAC SRC=$SRC DST=$DST PROTO=$PROTO SPT=$SPT DPT=$DPT
+      echo "$(which iptables) -A INPUT -p $PROTO -d $DST --dport $DPT -j ACCEPT"
+    done| sort -u
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|suggest}"
+    false ;;
+  esac
+
+else
+  echo "$0: iptables not installed..." >&2
+  false
+fi
+

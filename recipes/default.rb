@@ -20,38 +20,32 @@
 
 # Make sure ufw is not installed on Ubuntu/Debian, as it might interfere
 
+%w( ufw iptables-persistent ).each do |package|
+  package package do
+    action :remove
+    only_if { node['platform_family'] == 'debian' }
+  end
+end
+
 package 'iptables' do
-  package_name iptables
   action :install
 end
 
 package 'iptables-ipv6' do
-  package_name iptables-ipv6
   action :install
   only_if { node['platform_family'] == 'rhel' }
 end
 
-package 'ifw' do
-  package_name ifw
-  action :remove
-  only_if { node['platform_family'] == 'debian' }
-end
-
-package 'iptables-persistent' do
-  package_name iptables-persistent
-  action :remove
-  only_if { node['platform_family'] == 'debian' }
-end
-
 i=1; while i do
   i = node['chef-iptables']['confdir'].sub(/\/$/, '').index('/', i)
-  mode='0755'
+  mode = '0755'
   if i
     filename = node['chef-iptables']['confdir'][0..i]; i += 1
   else
     filename = node['chef-iptables']['confdir']
-    mode='0700'
+    mode = '0700'
   end
+
   directory filename do
     owner 'root'
     group 'root'
@@ -60,55 +54,55 @@ i=1; while i do
   end
 end
 
-node['chef-iptables'].each do |ipv|
-
-  if ipv.is_a? Array
-    filename = ipv.each do |table|
-
-      directory "/etc/iptables.d/#{table}" do
-        owner  'root'
-        group  'root'
-        mode   00700
-        not_if { ::File.exist?( "/etc/iptables.d/#{table}" ) }
-      end
-
-      table.each do |chain|
-
-        directory "/etc/iptables.d/#{table}/#{chain}" do
-          owner  'root'
-          group  'root'
-          mode   00700
-          not_if { ::File.exist?( "/etc/iptables.d/#{table}/#{chain}" ) }
-        end
-
-        "#{default['chef-iptables']['confdir']}/#{table}/#{chain}"
-      end
-    end
-  else
-    filename = "#{default['chef-iptables']['confdir']}/#{table}"
-  end
-
-  if ipv == "ipv4rules"
-    filename += ".ipv4"
-  elsif ipv == "ipv6rules"
-    filename += ".ipv6"
-  end
-
-  chain.each do |rule|
-    r = ""
+def makeRulefile( filename, rule )
+  if rule
+    content = ""
     if rule.is_a? Array
-         r +=  rule.each do |i|; i; end
-    else r += rule
+         rule.each do |i|; content += i + "\n"; end
+    else content += rule
     end
 
     file "#{filename}" do
-      owner    'root'
-      group    'root'
-      mode     00600
-      content  r
-      action   :create
+      owner   'root'
+      group   'root'
+      mode    00600
+      content content
+      action  :create
     end
-
   end
+end
 
+node['chef-iptables'].each do |ipvName, ipv|
+  ext = ipvName=='ipv4rules' ? 'ipv4' : ( ipvName=='ipv6rules' ? 'ipv6' : '' )
+  if ipvName == 'rules' || ipvName == 'ipv4rules' || ipvName == 'ipv6rules'
+
+    ipv.each do |tableName, table|
+      filename = "#{node['chef-iptables']['confdir'].sub(/\/$/, '')}/#{tableName}"
+
+      if table.is_a? Hash
+        directory filename do
+          owner  'root'
+          group  'root'
+          mode   00700
+          not_if { ::File.exist?( filename ) }
+        end
+
+        table.each do |chainName, chain|
+          directory "#{filename}/#{chainName}" do
+            owner  'root'
+            group  'root'
+            mode   00700
+            not_if { ::File.exist?( "#{filename}#{chainName}" ) }
+          end
+
+          chain.each do |ruleName, rule|
+            makeRulefile( filename + '/' + chainName + '/' + ruleName + '.' + ext, rule )
+          end
+        end
+      else
+          makeRulefile( filename + ext, table )
+      end
+
+    end
+  end
 end

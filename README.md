@@ -39,6 +39,8 @@
     <td>IPV6 definitions</td>
     <td><tt>nil</tt></td>
   </tr>
+
+NOTA: These defaults and the cookbook itself are given without any warranty. It is the responsibility of the user of this cookbook to check itself the result of its operation ...
 </table>
 
 ## Usage

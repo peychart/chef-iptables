@@ -16,10 +16,28 @@
     <th>Default</th>
   </tr>
   <tr>
-    <td><tt>['chef-iptables']['bacon']</tt></td>
-    <td>Boolean</td>
-    <td>whether to include bacon</td>
-    <td><tt>true</tt></td>
+    <td><tt>['chef-iptables']['confdir']</tt></td>
+    <td>String</td>
+    <td>Directory where to write the iptables chains</td>
+    <td><tt>/etc/iptables.d</tt></td>
+  </tr>
+  <tr>
+    <td><tt>['chef-iptables']['rules']</tt></td>
+    <td>Hash</td>
+    <td>IPV4 & IPV6 definitions</td>
+    <td><tt>{"rules"=>{"default":["-P INPUT DROP", "-P OUTPUT DROP", "-P FORWARD DROP"]}}</tt></td>
+  </tr>
+  <tr>
+    <td><tt>['chef-iptables']['ipv4rules']</tt></td>
+    <td>Hash</td>
+    <td>IPV4 definitions</td>
+    <td><tt>see the defaults attributes file</tt></td>
+  </tr>
+  <tr>
+    <td><tt>['chef-iptables']['ipv6rules']</tt></td>
+    <td>Hash</td>
+    <td>IPV6 definitions</td>
+    <td><tt>nil</tt></td>
   </tr>
 </table>
 

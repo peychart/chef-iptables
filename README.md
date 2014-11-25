@@ -25,7 +25,7 @@
     <td><tt>['chef-iptables']['rules']</tt></td>
     <td>Hash</td>
     <td>IPV4 & IPV6 definitions</td>
-    <td><tt>{"rules"=>{"default":["-P INPUT DROP", "-P OUTPUT DROP", "-P FORWARD DROP"]}}</tt></td>
+    <td><tt>{"default":["-P INPUT DROP", "-P OUTPUT DROP", "-P FORWARD DROP"]}</tt></td>
   </tr>
   <tr>
     <td><tt>['chef-iptables']['ipv4rules']</tt></td>

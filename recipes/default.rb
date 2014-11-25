@@ -100,9 +100,21 @@ node['chef-iptables'].each do |ipvName, ipv|
           end
         end
       else
-          makeRulefile( filename + ext, table )
+        makeRulefile( filename + ext, table )
       end
-
     end
+
   end
+end
+
+cookbook_file '/etc/init.d/iptables-persistent' do
+  source 'iptables-persistent'
+  owner 'root'
+  group 'root'
+  mode 00700
+end
+
+service 'iptables-persistent' do
+  supports :status => true, :restart => true, :reload => true
+  action [ :enable, :restart ]
 end

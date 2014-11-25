@@ -98,15 +98,15 @@ start() {
 
 # LOG_DROP : log & drop
   for i in 4 6; do
-    _ip${i}tables -N LOG_DROP${i}
-    _ip${i}tables -A LOG_DROP${i} -p 2 -j DROP
-    _ip${i}tables -A LOG_DROP${i} -p udp --dport 67:68 -j DROP
-    _ip${i}tables -A LOG_DROP${i} -p tcp --tcp-flags ACK,RST ACK,RST -j DROP
-    _ip${i}tables -A LOG_DROP${i} -m limit --limit 6/minute -j LOG --log-level notice --log-prefix \"$LOGPREFIX \"
-    _ip${i}tables -A LOG_DROP${i} -j DROP
-    _ip${i}tables -A INPUT   --jump LOG_DROP${i}
-    _ip${i}tables -A OUTPUT  --jump LOG_DROP${i}
-    _ip${i}tables -A FORWARD --jump LOG_DROP${i}
+    _ip${i}tables -N LOG_DROP_V${i}
+    _ip${i}tables -A LOG_DROP_V${i} -p 2 -j DROP
+    _ip${i}tables -A LOG_DROP_V${i} -p udp --dport 67:68 -j DROP
+    _ip${i}tables -A LOG_DROP_V${i} -p tcp --tcp-flags ACK,RST ACK,RST -j DROP
+    _ip${i}tables -A LOG_DROP_V${i} -m limit --limit 6/minute -j LOG --log-level notice --log-prefix \"IPV${i}-$LOGPREFIX \"
+    _ip${i}tables -A LOG_DROP_V${i} -j DROP
+    _ip${i}tables -A INPUT   --jump LOG_DROP_V${i}
+    _ip${i}tables -A OUTPUT  --jump LOG_DROP_V${i}
+    _ip${i}tables -A FORWARD --jump LOG_DROP_V${i}
   done
 
   [ $DEBUG -ne 0 ] && _ip4tables -A INPUT --protocol tcp --dport 22 --sport 1024:65535 --match state --state NEW --jump ACCEPT

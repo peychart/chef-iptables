@@ -14,6 +14,7 @@ default['chef-iptables']['ipv4rules']['default'] = [
   "-N PING",
   "-A PING -p icmp --icmp-type 8 -j ACCEPT",
   "-A PING -p icmp --icmp-type 11 -j ACCEPT",
+  "-A PING --match limit --limit 6/min --j ACCEPT",
   "-A INPUT  -j PING",
   "-A OUTPUT -j PING",
   "",

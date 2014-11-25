@@ -100,7 +100,7 @@ node['chef-iptables'].each do |ipvName, ipv|
           end
         end
       else
-        makeRulefile( filename + ext, table )
+        makeRulefile( filename + '.' + ext, table )
       end
     end
 

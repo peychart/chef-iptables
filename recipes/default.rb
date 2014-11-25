@@ -59,7 +59,7 @@ def makeRulefile( filename, rule )
     content = ""
     if rule.is_a? Array
          rule.each do |i|; content += i + "\n"; end
-    else content += rule
+    else content += rule + "\n"
     end
 
     file "#{filename}" do

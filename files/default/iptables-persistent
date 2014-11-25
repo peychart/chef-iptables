@@ -36,7 +36,7 @@ flush() {
 _iptables() {
   local iptbl=$(which ip$([ 0$1 -eq 6 ] && echo 6)tables); shift
   [ $DEBUG -gt 1 ] && echo $iptbl $* && return 0
-  $iptbl $*; [ $? -ne 0 -a $DEBUG -ne 0 ] && echo "(Error on: iptables $*)" >&2 && false
+  eval $iptbl $*; [ $? -ne 0 -a $DEBUG -ne 0 ] && echo "(Error on: iptables $*)" >&2 && false
 }
 _ip4tables() { _iptables 4 $*; }
 _ip6tables() { _iptables 6 $*; }
@@ -102,7 +102,7 @@ start() {
     _ip${i}tables -A LOG_DROP${i} -p 2 -j DROP
     _ip${i}tables -A LOG_DROP${i} -p udp --dport 67:68 -j DROP
     _ip${i}tables -A LOG_DROP${i} -p tcp --tcp-flags ACK,RST ACK,RST -j DROP
-    _ip${i}tables -A LOG_DROP${i} -m limit --limit 6/minute -j LOG --log-level notice --log-prefix "$LOGPREFIX "
+    _ip${i}tables -A LOG_DROP${i} -m limit --limit 6/minute -j LOG --log-level notice --log-prefix \"$LOGPREFIX \"
     _ip${i}tables -A LOG_DROP${i} -j DROP
     _ip${i}tables -A INPUT   --jump LOG_DROP${i}
     _ip${i}tables -A OUTPUT  --jump LOG_DROP${i}

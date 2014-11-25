@@ -7,8 +7,9 @@ default['chef-iptables']['confdir'] = '/etc/iptables.d/'
 default['chef-iptables']['rules']['default'] = [
   "-P INPUT   DROP",
   "-P OUTPUT  DROP",
-  "-P FORWARD DROP",
-  "",
+  "-P FORWARD DROP"
+]
+default['chef-iptables']['ipv4rules']['default'] = [
   "# PING",
   "-N PING",
   "-A PING -p icmp --icmp-type 8 -j ACCEPT",

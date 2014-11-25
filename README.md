@@ -45,6 +45,8 @@ NOTA: These defaults and the cookbook itself are given without any warranty. It 
 
 ## Usage
 
+ service iptables-persistent [start|stop|status|suggest]
+
 ### chef-iptables::default
 
 Include `chef-iptables` in your node's `run_list`:

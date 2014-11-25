@@ -11,20 +11,20 @@ default['chef-iptables']['rules']['default'] = [
 ]
 default['chef-iptables']['ipv4rules']['default'] = [
   "# PING",
-  "-N PING",
-  "-A PING -p icmp --icmp-type 8 -j ACCEPT",
-  "-A PING -p icmp --icmp-type 11 -j ACCEPT",
-  "-A PING --match limit --limit 6/min --j ACCEPT",
-  "-A INPUT  -j PING",
-  "-A OUTPUT -j PING",
+  "-t filter -N PING",
+  "-t filter -A PING -p icmp --icmp-type 8 -j ACCEPT",
+  "-t filter -A PING -p icmp --icmp-type 11 -j ACCEPT",
+  "-t filter -A PING --match limit --limit 6/min --j ACCEPT",
+  "-t filter -A INPUT  -j PING",
+  "-t filter -A OUTPUT -j PING",
   "",
   "# locale interface",
-  "-A INPUT  -i lo -j ACCEPT",
-  "-A OUTPUT -o lo -j ACCEPT",
+  "-t filter -A INPUT  -i lo -j ACCEPT",
+  "-t filter -A OUTPUT -o lo -j ACCEPT",
   "",
   "# Already connected:",
-  "-A INPUT  -m state --state ESTABLISHED,RELATED -j ACCEPT",
-  "-A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT",
+  "-t filter -A INPUT  -m state --state ESTABLISHED,RELATED -j ACCEPT",
+  "-t filter -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT",
   ""
 ]
 

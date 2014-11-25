@@ -64,13 +64,23 @@ node['chef-iptables'].each do |ipv|
 
   if ipv.is_a? Array
     filename = ipv.each do |table|
+
+      directory "/etc/iptables.d/#{table}" do
+        owner  'root'
+        group  'root'
+        mode   00700
+        not_if { ::File.exist?( "/etc/iptables.d/#{table}" ) }
+      end
+
       table.each do |chain|
+
         directory "/etc/iptables.d/#{table}/#{chain}" do
           owner  'root'
           group  'root'
           mode   00700
           not_if { ::File.exist?( "/etc/iptables.d/#{table}/#{chain}" ) }
         end
+
         "#{default['chef-iptables']['confdir']}/#{table}/#{chain}"
       end
     end

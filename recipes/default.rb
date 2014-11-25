@@ -73,7 +73,7 @@ def makeRulefile( filename, rule )
 end
 
 node['chef-iptables'].each do |ipvName, ipv|
-  ext = ipvName=='ipv4rules' ? 'ipv4' : ( ipvName=='ipv6rules' ? 'ipv6' : '' )
+  ext = ipvName=='ipv4rules' ? '.ipv4' : ( ipvName=='ipv6rules' ? '.ipv6' : '' )
   if ipvName == 'rules' || ipvName == 'ipv4rules' || ipvName == 'ipv6rules'
 
     ipv.each do |tableName, table|
@@ -96,11 +96,11 @@ node['chef-iptables'].each do |ipvName, ipv|
           end
 
           chain.each do |ruleName, rule|
-            makeRulefile( filename + '/' + chainName + '/' + ruleName + '.' + ext, rule )
+            makeRulefile( filename + '/' + chainName + '/' + ruleName + ext, rule )
           end
         end
       else
-        makeRulefile( filename + '.' + ext, table )
+        makeRulefile( filename + ext, table )
       end
     end
 

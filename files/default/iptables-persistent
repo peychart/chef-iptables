@@ -138,7 +138,7 @@ if command -v iptables >/dev/null 2>&1; then
       done
 
       [ $DEBUG -ne 0 ] && echo IN=$IN OUT=$OUT MAC=$MAC SRC=$SRC DST=$DST PROTO=$PROTO SPT=$SPT DPT=$DPT
-      echo "$(which iptables) -A INPUT -p $PROTO -d $DST --dport $DPT -j ACCEPT"
+      echo "$(which iptables) -A INPUT -p $PROTO -d $DST --dport $DPT -s $SRC --sport $SPT -j ACCEPT"
     done| sort -u
     ;;
   *)

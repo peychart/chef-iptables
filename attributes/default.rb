@@ -7,9 +7,8 @@ default['chef-iptables']['confdir'] = '/etc/iptables.d/'
 default['chef-iptables']['rules']['default'] = [
   "-P INPUT   DROP",
   "-P OUTPUT  DROP",
-  "-P FORWARD DROP"
-]
-default['chef-iptables']['ipv4rules']['default'] = [
+  "-P FORWARD DROP",
+  "",
   "# PING",
   "-t filter -N PING",
   "-t filter -A PING -p icmp --icmp-type 8 -j ACCEPT",
@@ -29,8 +28,6 @@ default['chef-iptables']['ipv4rules']['default'] = [
 ]
 
 default['chef-iptables']['ipv4rules']['filter']['INPUT']['ssh'] = '--protocol tcp --dport 22 --sport 1024:65535 --match state --state NEW --jump ACCEPT'
-default['chef-iptables']['ipv4rules']['filter']['INPUT']['dns'] = '--protocol udp --dport 53 --jump ACCEPT'
-default['chef-iptables']['ipv4rules']['filter']['INPUT']['ntp'] = '--protocol udp --sport 123 --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['nat']['OUTPUT']['dns'] = '--protocol udp --dport 53 --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['nat']['OUTPUT']['ntp'] = '--protocol udp --dport 123 --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['filter']['FORWARD']['default'] = nil

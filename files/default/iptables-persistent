@@ -111,7 +111,7 @@ start() {
 
   [ $DEBUG -ne 0 ] && _ip4tables -A INPUT --protocol tcp --dport 22 --sport 1024:65535 --match state --state NEW --jump ACCEPT
 
-  if _ip4tables -L -nv| grep -v DROP| grep -qs FORWARD; then
+  if _ip4tables -L FORWARD -nv| grep -qsv "DROP\|pkts"; then
     echo 1 >/proc/sys/net/ipv4/ip_forward
   fi
 }

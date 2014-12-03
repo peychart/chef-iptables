@@ -30,7 +30,7 @@ default['chef-iptables']['rules']['default'] = [
 default['chef-iptables']['ipv4rules']['filter']['INPUT']['ssh'] = '--protocol tcp --dport 22 --sport 1024:65535 --match state --state NEW --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['dns'] = '--protocol udp --dport 53 --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['ntp'] = '--protocol udp --dport 123 --jump ACCEPT'
-default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['ntp'] = '--protocol tcp --dport 3142 --jump ACCEPT'
+default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['apt-cacher-nt'] = '--protocol tcp --dport 3142 --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['filter']['FORWARD']['default'] = nil
 
 default['chef-iptables']['ipv4rules']['nat']['PREROUTING']['default'] = nil

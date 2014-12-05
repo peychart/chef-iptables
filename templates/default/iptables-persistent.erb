@@ -9,7 +9,7 @@
 ### END INIT INFO
 
 LOGPREFIX="(Iptables-dropped): "
-DEFINITIONS=/etc/iptables.d
+DEFINITIONS=<%= @dirname %>
 export DEBUG=${DEBUG:=0}
 
 flush() {

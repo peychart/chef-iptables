@@ -4,18 +4,10 @@
 #
 default['chef-iptables']['confdir'] = '/etc/iptables.d/'
 
-default['chef-iptables']['rules']['default'] = [
+default['chef-iptables']['rules']['0default'] = [
   "-P INPUT   DROP",
   "-P OUTPUT  DROP",
   "-P FORWARD DROP",
-  "",
-  "# PING",
-  "-t filter -N PING",
-  "-t filter -A PING -p icmp --icmp-type 8 -j ACCEPT",
-  "-t filter -A PING -p icmp --icmp-type 11 -j ACCEPT",
-  "-t filter -A PING --match limit --limit 6/min --j ACCEPT",
-  "-t filter -A INPUT  -j PING",
-  "-t filter -A OUTPUT -j PING",
   "",
   "# locale interface",
   "-t filter -A INPUT  -i lo -j ACCEPT",
@@ -24,6 +16,26 @@ default['chef-iptables']['rules']['default'] = [
   "# Already connected:",
   "-t filter -A INPUT  -m state --state ESTABLISHED,RELATED -j ACCEPT",
   "-t filter -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT",
+  "",
+]
+default['chef-iptables']['rules']['0default.ipv4'] = [
+  "# PING",
+  "-t filter -N PING",
+  "-t filter -A PING -p icmp --icmp-type 8 -j ACCEPT",
+  "-t filter -A PING -p icmp --icmp-type 11 -j ACCEPT",
+  "-t filter -A PING --match limit --limit 6/min --j ACCEPT",
+  "-t filter -A INPUT  -j PING",
+  "-t filter -A OUTPUT -j PING",
+  ""
+]
+default['chef-iptables']['rules']['0default.ipv6'] = [
+  "# PING",
+  "-t filter -N PING",
+  "-t filter -A PING -p icmpv6 --icmpv6-type 8 -j ACCEPT",
+  "-t filter -A PING -p icmpv6 --icmpv6-type 11 -j ACCEPT",
+  "-t filter -A PING --match limit --limit 6/min --j ACCEPT",
+  "-t filter -A INPUT  -j PING",
+  "-t filter -A OUTPUT -j PING",
   ""
 ]
 

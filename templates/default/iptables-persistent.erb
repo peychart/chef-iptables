@@ -132,7 +132,7 @@ if command -v iptables >/dev/null 2>&1; then
     done
     ;;
   suggest)
-    grep "$LOGPREFIX" /var/log/syslog| sed -e 's/^.*'"$LOGPREFIX//"| while read r; do
+    grep "$LOGPREFIX" /var/log/syslog| tail -100| sed -e 's/^.*'"$LOGPREFIX//"| while read r; do
       for i in $r; do 
         echo $i| grep -qs "=" && eval $i
       done

@@ -13,7 +13,7 @@ DEFINITIONS=<%= @dirname %>
 export DEBUG=${DEBUG:=0}
 
 flush() {
-  for ipv in "" 6; do
+  for ipv in 4 6; do
     [ -f /proc/net/ip${ipv}_tables_names ] \
      && for IPTABLES in $(which ip${ipv}tables); do
       for param in F Z X; do

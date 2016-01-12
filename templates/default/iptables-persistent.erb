@@ -116,6 +116,20 @@ start() {
   fi
 }
 
+status() {
+  for ipv in "" 6; do
+    [ -f /proc/net/ip${ipv}_tables_names ] \
+     && for IPTABLES in $(which ip${ipv}tables); do
+      echo "************** IPV${ipv:-4}:"
+      for table in $(cat /proc/net/ip${ipv}_tables_names); do
+        echo "***** TABLE '$table':"
+        _iptables ${ipv:-4} -t $table -L -nv
+        echo
+      done
+    done
+  done
+}
+
 # Arguments processing:
 if command -v iptables >/dev/null 2>&1; then
   case "$1" in
@@ -126,10 +140,7 @@ if command -v iptables >/dev/null 2>&1; then
     flush
     ;;
   status)
-    I=4; for IPTABLES in $(which iptables) $(which ip6tables); do
-      echo "IPV$I:" && _ip4tables -L -nv; echo
-      I=$(expr $I + 2)
-    done
+    status
     ;;
   suggest)
     grep "$LOGPREFIX" /var/log/syslog| tail -100| sed -e 's/^.*'"$LOGPREFIX//"| while read r; do

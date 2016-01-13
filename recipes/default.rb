@@ -27,13 +27,10 @@
   end
 end
 
-package 'iptables' do
-  action :install
-end
-
-package 'iptables-ipv6' do
-  action :install
-  only_if { node['platform_family'] == 'rhel' }
+%w( iptables syslinux ).each do |package|
+  package package do
+    action :install
+  end
 end
 
 i=1; while i do

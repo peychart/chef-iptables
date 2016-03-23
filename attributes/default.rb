@@ -17,6 +17,16 @@ default['chef-iptables']['rules']['0default'] = [
   "-t filter -A INPUT  -m state --state ESTABLISHED,RELATED -j ACCEPT",
   "-t filter -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT",
   "",
+  "# A BANNIR ABSOLUMENT:",
+  "-t filter -A INPUT -s  46.196.0.0/16 -j DROP",
+  "-t filter -A INPUT -s  62.212.72.0/24 -j DROP",
+  "-t filter -A INPUT -s  69.31.103.106/24 -j DROP",
+  "-t filter -A INPUT -s  79.181.240.0/20 -j DROP",
+  "-t filter -A INPUT -s  82.192.66.205/24 -j DROP",
+  "-t filter -A INPUT -s 173.245.64.0/24 -j DROP",
+  "-t filter -A INPUT -s 216.172.135.182/32 -j DROP",
+  "-t filter -A INPUT -s 213.140.59.0/24 -j DROP",
+  "",
 ]
 default['chef-iptables']['rules']['0default.ipv4'] = [
   "# PING",
@@ -46,6 +56,12 @@ default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['apt-cacher-ng'] = '--
 default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['mail'] = '--protocol tcp --dport 25 --match state --state NEW --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['https'] = '--protocol tcp --dport 443 -m state --state NEW --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['filter']['FORWARD']['default'] = nil
+# on limite le nombre de demandes de connexions :
+#default['chef-iptables']['ipv4rules']['filter']['FORWARD']['DDOS'] = [
+# '-p tcp --syn -m limit --limit 4/second -j ACCEPT',
+# '-p udp -m limit --limit 4/second -j ACCEPT',
+# '-p tcp --tcp-flags SYN,ACK,FIN,RST RST -m limit --limit 4/s -j ACCEPT'
+#]
 
 default['chef-iptables']['ipv4rules']['nat']['PREROUTING']['default'] = nil
 default['chef-iptables']['ipv4rules']['nat']['POSTROUTING']['default'] = nil

@@ -21,30 +21,30 @@ default['chef-iptables']['rules']['0default'] = [
 default['chef-iptables']['rules']['0default.ipv4'] = [
   "# PING",
   "-t filter -N PING",
-  "-t filter -A PING -p icmp --icmp-type 8 -j ACCEPT",
-  "-t filter -A PING -p icmp --icmp-type 11 -j ACCEPT",
-  "-t filter -A PING -p icmp --match limit --limit 6/min --j ACCEPT",
+  "-t filter -A PING -p icmp --icmp-type echo-request --match limit --limit 6/minute --limit-burst 5 -j ACCEPT",
+  "-t filter -A PING -p icmp --icmp-type echo-reply  -j ACCEPT",
   "-t filter -A INPUT  -j PING",
   "-t filter -A OUTPUT -j PING",
+  "-t filter -A FORWARD -j PING",
+  "-t filter -A OUTPUT --protocol udp --dport 53 --jump ACCEPT",
   ""
 ]
 default['chef-iptables']['rules']['0default.ipv6'] = [
   "# PING",
   "-t filter -N PING",
-  "-t filter -A PING -p icmpv6 --icmpv6-type 8 -j ACCEPT",
-  "-t filter -A PING -p icmpv6 --icmpv6-type 11 -j ACCEPT",
-  "-t filter -A PING -p icmpv6 --match limit --limit 6/min --j ACCEPT",
+  "-t filter -A PING -p icmpv6 --icmpv6-type echo-request --match limit --limit 6/minute --limit-burst 5 -j ACCEPT",
+  "-t filter -A PING -p icmpv6 --icmpv6-type echo-reply -j ACCEPT",
   "-t filter -A INPUT  -j PING",
   "-t filter -A OUTPUT -j PING",
   ""
 ]
 
 default['chef-iptables']['ipv4rules']['filter']['INPUT']['ssh'] = '--protocol tcp --dport 22 --sport 1024:65535 --match state --state NEW --jump ACCEPT'
-default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['dns'] = '--protocol udp --dport 53 --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['ntp'] = '--protocol udp --dport 123 --jump ACCEPT'
-default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['syslog'] = ['--protocol udp --dport 514 --jump ACCEPT', '--protocol tcp --dport 514 --jump ACCEPT']
-default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['apt-cacher-ng'] = '--protocol tcp --dport 3142 --jump ACCEPT'
-default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['mail'] = '--protocol tcp --dport 25 --jump ACCEPT'
+default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['syslog'] = ['--protocol udp --dport 514 --jump ACCEPT', '--protocol tcp --dport 514 --match state --state NEW --jump ACCEPT']
+default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['apt-cacher-ng'] = '--protocol tcp --dport 3142 --match state --state NEW --jump ACCEPT'
+default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['mail'] = '--protocol tcp --dport 25 --match state --state NEW --jump ACCEPT'
+default['chef-iptables']['ipv4rules']['filter']['OUTPUT']['https'] = '--protocol tcp --dport 443 -m state --state NEW --jump ACCEPT'
 default['chef-iptables']['ipv4rules']['filter']['FORWARD']['default'] = nil
 
 default['chef-iptables']['ipv4rules']['nat']['PREROUTING']['default'] = nil

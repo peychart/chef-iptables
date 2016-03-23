@@ -102,6 +102,7 @@ start() {
     _ip${i}tables -A LOG_DROP_V${i} -p 2 -j DROP
     _ip${i}tables -A LOG_DROP_V${i} -p udp --dport 67:68 -j DROP
     _ip${i}tables -A LOG_DROP_V${i} -p tcp --tcp-flags ACK,RST ACK,RST -j DROP
+    _ip${i}tables -A LOG_DROP_V${i} -p tcp  -m state --state INVALID -j DROP
     _ip${i}tables -A LOG_DROP_V${i} -m limit --limit 6/minute -j LOG --log-level notice --log-prefix \"IPV${i}-$LOGPREFIX \"
     _ip${i}tables -A LOG_DROP_V${i} -j DROP
     _ip${i}tables -A INPUT   --jump LOG_DROP_V${i}
@@ -111,7 +112,7 @@ start() {
 
   [ $DEBUG -ne 0 ] && _ip4tables -A INPUT --protocol tcp --dport 22 --sport 1024:65535 --match state --state NEW --jump ACCEPT
 
-  if _ip4tables -L FORWARD -nv| grep -qsv "DROP\|pkts\|FORWARD"; then
+  if _ip4tables -L FORWARD -nv| grep -qsv "DROP\|pkts\|FORWARD\|PING"; then
     echo 1 >/proc/sys/net/ipv4/ip_forward
   fi
 }

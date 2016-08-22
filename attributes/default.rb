@@ -16,6 +16,17 @@ default['chef-iptables']['rules']['0default'] = [
   "# Already connected:",
   "-t filter -A INPUT  -m state --state ESTABLISHED,RELATED -j ACCEPT",
   "-t filter -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT",
+  ""
+]
+default['chef-iptables']['rules']['0default.ipv4'] = [
+  "# PING",
+  "-t filter -N PING",
+  "-t filter -A PING -p icmp --icmp-type echo-request --match limit --limit 6/minute --limit-burst 5 -j ACCEPT",
+  "-t filter -A PING -p icmp --icmp-type echo-reply  -j ACCEPT",
+  "-t filter -A INPUT  -j PING",
+  "-t filter -A OUTPUT -j PING",
+  "-t filter -A FORWARD -j PING",
+  "-t filter -A OUTPUT --protocol udp --dport 53 --jump ACCEPT",
   "",
   "# A BANNIR ABSOLUMENT:",
   "-t filter -N BANISH",
@@ -28,17 +39,6 @@ default['chef-iptables']['rules']['0default'] = [
   "-t filter -A BANISH -s 216.172.135.182/32 -j DROP",
   "-t filter -A BANISH -s 213.140.59.0/24 -j DROP",
   "-t filter -A INPUT  -j BANISH",
-  "",
-]
-default['chef-iptables']['rules']['0default.ipv4'] = [
-  "# PING",
-  "-t filter -N PING",
-  "-t filter -A PING -p icmp --icmp-type echo-request --match limit --limit 6/minute --limit-burst 5 -j ACCEPT",
-  "-t filter -A PING -p icmp --icmp-type echo-reply  -j ACCEPT",
-  "-t filter -A INPUT  -j PING",
-  "-t filter -A OUTPUT -j PING",
-  "-t filter -A FORWARD -j PING",
-  "-t filter -A OUTPUT --protocol udp --dport 53 --jump ACCEPT",
   ""
 ]
 default['chef-iptables']['rules']['0default.ipv6'] = [

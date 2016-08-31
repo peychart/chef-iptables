@@ -23,6 +23,8 @@ default['chef-iptables']['rules']['0default.ipv4'] = [
   "-t filter -N PING",
   "-t filter -A PING -p icmp --icmp-type echo-request --match limit --limit 6/minute --limit-burst 5 -j ACCEPT",
   "-t filter -A PING -p icmp --icmp-type echo-reply  -j ACCEPT",
+  "-t filter -A PING -p icmp --icmp-type 3/4 -j ACCEPT",
+  "-t filter -A PING -p icmp --icmp-type 11 -j ACCEPT",
   "-t filter -A INPUT  -j PING",
   "-t filter -A OUTPUT -j PING",
   "-t filter -A FORWARD -j PING",

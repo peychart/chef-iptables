@@ -1,0 +1,5 @@
+# /etc/default/iptables-persistent
+# Set ENABLED to true if you want the init script to start haproxy.
+ENABLED=false
+# Add extra flags below.
+

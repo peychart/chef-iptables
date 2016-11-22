@@ -8,6 +8,12 @@
 # Short-Description:    Lance le firewall iptables
 ### END INIT INFO
 
+if [ -f /etc/default/iptables-persistent ]; then
+ . /etc/default/iptables-persistent
+else
+ ENABLED=true
+fi
+
 LOGPREFIX="(Iptables-dropped): "
 DEFINITIONS=<%= @dirname %>
 export DEBUG=${DEBUG:=0}

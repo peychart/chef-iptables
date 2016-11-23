@@ -104,11 +104,19 @@ node['chef-iptables'].each do |ipvName, ipv|
   end
 end
 
-template '/etc/init.d/iptables-persistent' do
+cookbook_file '/etc/init.d/iptables-persistent' do
+  source  'iptables-persistent'
+  owner   'root'
+  group   'root'
+  mode    0755
+  action  :create
+end
+
+template '/etc/default/iptables-persistent' do
   source 'iptables-persistent.erb'
   owner 'root'
   group 'root'
-  mode 00700
+  mode 0640
   variables({
     :dirname => node['chef-iptables']['confdir'].sub(/\/$/, '')
   })

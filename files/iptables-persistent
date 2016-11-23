@@ -1,5 +1,171 @@
-# /etc/default/iptables-persistent
-# Set ENABLED to true if you want the init script to start haproxy.
-ENABLED=false
-# Add extra flags below.
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:             firewall
+# Required-Start:
+# Required-Stop:
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    Lance le firewall iptables
+### END INIT INFO
+
+if [ -f /etc/default/iptables-persistent ]; then
+ . /etc/default/iptables-persistent
+else
+ ENABLED=true
+fi
+
+LOGPREFIX=${LOGPREFIX:="(Iptables-dropped): "}
+DEFINITIONS=${DEFINITIONS:="/etc/iptables.d"}
+DEBUG=${DEBUG:=0}
+
+flush() {
+  for ipv in "" 6; do
+    [ -f /proc/net/ip${ipv}_tables_names ] \
+     && for IPTABLES in $(which ip${ipv}tables); do
+      for param in F Z X; do
+        $IPTABLES -$param
+      done
+      for table in $(cat /proc/net/ip${ipv}_tables_names); do
+        for param in F Z X; do
+          $IPTABLES --table $table -$param
+        done
+      done
+      for chain in INPUT FORWARD OUTPUT; do
+        $IPTABLES -F $chain
+        $IPTABLES -P $chain ACCEPT
+      done
+    done
+  done
+  echo 0 >/proc/sys/net/ipv4/ip_forward
+}
+
+_iptables() {
+  local iptbl=$(which ip$([ 0$1 -eq 6 ] && echo 6)tables); shift
+  [ $DEBUG -gt 1 ] && echo $iptbl $* && return 0
+  eval $iptbl $*; [ $? -ne 0 -a $DEBUG -ne 0 ] && echo "(Error on: iptables $*)" >&2 && false
+}
+_ip4tables() { _iptables 4 $*; }
+_ip6tables() { _iptables 6 $*; }
+
+getrules() {
+  cat $1| while read rule; do
+    rule=$(echo $rule| sed -e 's/#.*$//' -e 's/[ 	]*$//')
+    [ -z "$rule" ] || echo $rule
+  done
+}
+
+start() {
+  /sbin/modprobe -q iptable_filter
+  /sbin/modprobe -q ip6table_filter
+
+  flush
+
+  if [ -d $DEFINITIONS ]; then
+
+    for table in $($(which ls) $DEFINITIONS); do
+      if [ -d $DEFINITIONS/$table ]; then
+
+        for chain in $($(which ls) $DEFINITIONS/$table); do
+          [ -d $DEFINITIONS/$table/$chain ] && for def in $($(which ls) $DEFINITIONS/$table/$chain); do
+            [ $DEBUG -gt 1 ] && echo "# $DEFINITIONS/$table/$chain:" >&2
+  
+            getrules $DEFINITIONS/$table/$chain/$def| while read rule; do
+              if echo $DEFINITIONS/$table/$chain/$def| grep -qs "\.ipv6$"; then
+                _ip6tables --table $table -A $chain $rule
+              elif echo $DEFINITIONS/$table/$chain/$def| grep -qs "\.ipv4$"; then
+                _ip4tables --table $table -A $chain $rule
+              else
+                _ip6tables --table $table -A $chain $rule
+                _ip4tables --table $table -A $chain $rule
+              fi
+            done
+  
+          done
+        done
+
+      else
+        [ $DEBUG -gt 1 ] && echo "# $DEFINITIONS/$table:" >&2
+
+        getrules $DEFINITIONS/$table| while read rule; do
+          if echo $DEFINITIONS/$table| grep -qs "\.ipv6$"; then
+            _ip6tables $rule
+          elif echo $DEFINITIONS/$table| grep -qs "\.ipv4$"; then
+            _ip4tables $rule
+          else
+            _ip6tables $rule
+            _ip4tables $rule
+          fi
+        done
+
+      fi
+    done
+
+  fi
+
+# LOG_DROP : log & drop
+  for i in 4 6; do
+    _ip${i}tables -N LOG_DROP_V${i}
+    _ip${i}tables -A LOG_DROP_V${i} -p 2 -j DROP
+    _ip${i}tables -A LOG_DROP_V${i} -p udp --dport 67:68 -j DROP
+    _ip${i}tables -A LOG_DROP_V${i} -p tcp --tcp-flags ACK,RST ACK,RST -j DROP
+    _ip${i}tables -A LOG_DROP_V${i} -p tcp  -m state --state INVALID -j DROP
+    _ip${i}tables -A LOG_DROP_V${i} -m limit --limit 6/minute -j LOG --log-level notice --log-prefix \"IPV${i}-$LOGPREFIX \"
+    _ip${i}tables -A LOG_DROP_V${i} -j DROP
+    _ip${i}tables -A INPUT   --jump LOG_DROP_V${i}
+    _ip${i}tables -A OUTPUT  --jump LOG_DROP_V${i}
+    _ip${i}tables -A FORWARD --jump LOG_DROP_V${i}
+  done
+
+  [ $DEBUG -ne 0 ] && _ip4tables -A INPUT --protocol tcp --dport 22 --sport 1024:65535 --match state --state NEW --jump ACCEPT
+
+  if _ip4tables -L FORWARD -nv| grep -qsv "DROP\|pkts\|FORWARD\|PING"; then
+    echo 1 >/proc/sys/net/ipv4/ip_forward
+  fi
+}
+
+status() {
+  for ipv in "" 6; do
+    [ -f /proc/net/ip${ipv}_tables_names ] \
+     && for IPTABLES in $(which ip${ipv}tables); do
+      echo "************** IPV${ipv:-4}:"
+      for table in $(cat /proc/net/ip${ipv}_tables_names); do
+        echo "***** TABLE '$table':"
+        _iptables ${ipv:-4} -t $table -L -nv
+        echo
+      done
+    done
+  done
+}
+
+# Arguments processing:
+if command -v iptables >/dev/null 2>&1; then
+  case "$1" in
+  ""|start|restart|reload)
+    start
+    ;;
+  stop|flush)
+    flush
+    ;;
+  status)
+    status
+    ;;
+  suggest)
+    grep "$LOGPREFIX" /var/log/syslog| tail -100| sed -e 's/^.*'"$LOGPREFIX//"| while read r; do
+      for i in $r; do 
+        echo $i| grep -qs "=" && eval $i
+      done
+
+      [ $DEBUG -ne 0 ] && echo IN=$IN OUT=$OUT MAC=$MAC SRC=$SRC DST=$DST PROTO=$PROTO SPT=$SPT DPT=$DPT
+      echo "$(which iptables) -A INPUT -p $PROTO -d $DST --dport $DPT -s $SRC --sport $SPT -j ACCEPT"
+    done| sort -u
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|reload|suggest}"
+    false ;;
+  esac
+
+else
+  echo "$0: iptables not installed..." >&2
+  false
+fi
 

@@ -27,7 +27,7 @@
   end
 end
 
-%w( iptables syslinux ).each do |package|
+%w( iptables syslinux syslinux-utils ).each do |package|
   package package do
     action :install
   end

@@ -31,16 +31,28 @@ default['chef-iptables']['rules']['0default.ipv4'] = [
   "-t filter -A OUTPUT --protocol udp --dport 53 --jump ACCEPT",
   "",
   "# A BANNIR ABSOLUMENT:",
-  "-t filter -N BANISH",
-  "-t filter -A BANISH -s  46.196.0.0/16 -j DROP",
-  "-t filter -A BANISH -s  62.212.72.0/24 -j DROP",
-  "-t filter -A BANISH -s  69.31.103.106/24 -j DROP",
-  "-t filter -A BANISH -s  79.181.240.0/20 -j DROP",
-  "-t filter -A BANISH -s  82.192.66.205/24 -j DROP",
-  "-t filter -A BANISH -s 173.245.64.0/24 -j DROP",
-  "-t filter -A BANISH -s 216.172.135.182/32 -j DROP",
-  "-t filter -A BANISH -s 213.140.59.0/24 -j DROP",
-  "-t filter -A INPUT  -j BANISH",
+  "-t filter -N BANISH-IN"
+  "-t filter -A BANISH-IN -s  46.196.0.0/16 -j DROP"
+  "-t filter -A BANISH-IN -s  62.212.72.0/24 -j DROP"
+  "-t filter -A BANISH-IN -s  69.31.103.106/24 -j DROP"
+  "-t filter -A BANISH-IN -s  79.181.240.0/20 -j DROP"
+  "-t filter -A BANISH-IN -s  82.192.66.205/24 -j DROP"
+  "-t filter -A BANISH-IN -s 173.245.64.0/24 -j DROP"
+  "-t filter -A BANISH-IN -s 216.172.135.182/32 -j DROP"
+  "-t filter -A BANISH-IN -s 213.140.59.0/24 -j DROP"
+  "-t filter -N BANISH-OUT"
+  "-t filter -A BANISH-OUT -d  46.196.0.0/16 -j DROP"
+  "-t filter -A BANISH-OUT -d  62.212.72.0/24 -j DROP"
+  "-t filter -A BANISH-OUT -d  69.31.103.106/24 -j DROP"
+  "-t filter -A BANISH-OUT -d  79.181.240.0/20 -j DROP"
+  "-t filter -A BANISH-OUT -d  82.192.66.205/24 -j DROP"
+  "-t filter -A BANISH-OUT -d 173.245.64.0/24 -j DROP"
+  "-t filter -A BANISH-OUT -d 216.172.135.182/32 -j DROP"
+  "-t filter -A BANISH-OUT -d 213.140.59.0/24 -j DROP"
+  "-t filter -A INPUT  -j BANISH-IN"
+  "-t filter -A OUTPUT  -j BANISH-OUT"
+  "-t filter -A FORWARD  -j BANISH-IN"
+  "-t filter -A FORWARD  -j BANISH-OUT"
   ""
 ]
 default['chef-iptables']['rules']['0default.ipv6'] = [

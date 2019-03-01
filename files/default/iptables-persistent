@@ -8,12 +8,9 @@
 # Short-Description:    Lance le firewall iptables
 ### END INIT INFO
 
-if [ -f /etc/default/iptables-persistent ]; then
- . /etc/default/iptables-persistent
-else
- ENABLED=true
-fi
+[ -f /etc/default/iptables-persistent ] && . /etc/default/iptables-persistent
 
+ENABLE=${ENABLE:="false"}
 LOGPREFIX=${LOGPREFIX:="(Iptables-dropped): "}
 DEFINITIONS=${DEFINITIONS:="/etc/iptables.d"}
 DEBUG=${DEBUG:=0}
@@ -55,6 +52,7 @@ getrules() {
 }
 
 start() {
+  if ! $ENABLED ; then exit 0 ; fi
   /sbin/modprobe -q iptable_filter
   /sbin/modprobe -q ip6table_filter
 
